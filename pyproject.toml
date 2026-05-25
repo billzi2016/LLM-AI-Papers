@@ -1,0 +1,15 @@
+[project]
+name = "llm-ai-papers"
+version = "0.1.0"
+description = "Automated AI paper reading agent — extracts, matches, and generates Chinese interpretations of arXiv papers"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.31.0",
+    "rapidfuzz>=3.0.0",
+]
+
+[project.scripts]
+# 数据处理流水线（从 raw.txt 提取并匹配 arxiv）
+process = "data.main:main"
+# 解读生成 Agent（从 papers.json 生成中文解读并 commit）
+agent = "main_agent:main"

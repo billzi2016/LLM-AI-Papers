@@ -1,0 +1,8 @@
+data/
+
+# 进度与缓存文件
+.reader_progress.json
+.reader_failed.json
+__pycache__/
+*.pyc
+
