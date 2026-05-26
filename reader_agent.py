@@ -1,5 +1,5 @@
 """
-工具模块：调用 Ollama 大模型，为单篇论文生成中文解读。
+工具模块：调用指定 Ollama 端点，为单篇论文生成中文解读。
 不要直接运行，从 main_agent.py 调用 generate_reading()。
 
 输出约定：
@@ -8,16 +8,12 @@
 """
 
 import re
-from load_balancer import balancer
+import requests
 
 MODEL       = "gpt-oss:120b"
 MAX_RETRIES = 3   # 格式不符或请求异常时最大重试次数
 
 # ── Prompt ───────────────────────────────────────────────────────────────────
-# 核心约束：
-#   1. 第一行固定格式，方便代码直接拼接
-#   2. 每个章节结构明确，避免模型输出泛泛而谈的废话
-#   3. 禁止 AI 八股文套话，要求具体数据和类比解释
 PROMPT = """你是一位 AI 研究领域的资深科普作者，正在为「有编程基础但刚入门 AI 研究」的读者写一篇论文解读。
 
 请根据下面提供的论文标题、摘要（abstract）和参考描述（仅供你理解，不要照抄）来撰写解读。
@@ -86,14 +82,15 @@ def _strip_think(text: str) -> str:
     return re.sub(r'<think>.*?</think>', '', text, flags=re.DOTALL).strip()
 
 
-def generate_reading(paper: dict) -> str | None:
+def generate_reading(paper: dict, endpoint: str) -> str | None:
     """
-    为一篇论文生成中文解读，返回模型原始输出字符串（以 # 标题行开头）。
-    重试 MAX_RETRIES 次仍失败则返回 None。
+    调用指定 Ollama 端点为一篇论文生成中文解读。
+    返回以 # 标题行开头的字符串；重试 MAX_RETRIES 次仍失败则返回 None。
 
     参数
     ─────
-    paper : papers.json 中的一条记录，需含 title / abstract / summary
+    paper    : papers.json 中的一条记录，需含 title / abstract / summary
+    endpoint : Ollama API 地址（由 main_agent 按线程分配，不共享）
     """
     prompt = PROMPT.format(
         title    = paper.get('title',    ''),
@@ -103,21 +100,23 @@ def generate_reading(paper: dict) -> str | None:
 
     for attempt in range(1, MAX_RETRIES + 1):
         try:
-            resp = balancer.post(
+            resp = requests.post(
+                endpoint,
                 json={
                     "model":  MODEL,
                     "prompt": prompt,
                     "stream": False,
                     "options": {
-                        "temperature": 0.3,    # 略高温度让文章更自然流畅
+                        "temperature": 0.3,
                         "num_ctx":     131072,
                     },
                 },
                 timeout=600,
             )
+            resp.raise_for_status()
             text = _strip_think(resp.json().get("response", ""))
             if text.startswith('#'):
-                return text   # 格式正确，直接返回给 committer 拼接
+                return text
             print(f"(重试{attempt}:输出未以#开头) ", end='', flush=True)
         except Exception as e:
             print(f"(重试{attempt}:{e}) ", end='', flush=True)
