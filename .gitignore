@@ -1,4 +1,9 @@
-data/
+# 数据文件（版权内容，不入库）
+data/*.json
+data/*.txt
+data/*.log
+data/*.pkl
+data/.*
 
 # 进度与缓存文件
 .reader_progress.json

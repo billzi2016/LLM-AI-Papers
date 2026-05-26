@@ -29,10 +29,11 @@ from pathlib import Path
 from reader_agent import generate_reading
 from committer   import write_and_commit
 
-_ROOT         = Path(__file__).parent
-PAPERS_FILE   = _ROOT / "data" / "papers.json"
-PROGRESS_FILE = _ROOT / ".reader_progress.json"
-FAILED_FILE   = _ROOT / ".reader_failed.json"
+_ROOT          = Path(__file__).parent
+PAPERS_FILE    = _ROOT / "data" / "papers.json"
+CLASSIC_FILE   = _ROOT / "data" / "classic_papers.json"
+PROGRESS_FILE  = _ROOT / ".reader_progress.json"
+FAILED_FILE    = _ROOT / ".reader_failed.json"
 
 
 def _load_progress() -> dict:
@@ -54,8 +55,16 @@ def _key(paper: dict) -> str:
 
 def main() -> None:
     papers = json.loads(PAPERS_FILE.read_text(encoding='utf-8'))
-    total  = len(papers)
-    print(f"[main_agent] papers.json 共 {total:,} 篇")
+    if CLASSIC_FILE.exists():
+        classic = json.loads(CLASSIC_FILE.read_text(encoding='utf-8'))
+        # 去重：classic 中已在 papers 里的 arxiv_id 不重复处理
+        existing_ids = {p.get('arxiv_id') for p in papers}
+        classic = [p for p in classic if p.get('arxiv_id') not in existing_ids]
+        papers = papers + classic
+        print(f"[main_agent] papers.json + classic_papers.json 合并，共 {len(papers):,} 篇")
+    else:
+        print(f"[main_agent] papers.json 共 {len(papers):,} 篇（classic_papers.json 不存在，跳过）")
+    total = len(papers)
 
     state = _load_progress()
     done  = set(state["done"])
