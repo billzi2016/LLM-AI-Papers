@@ -7,5 +7,5 @@ main_agent 会为每个端点启动一个独立线程，真正并行处理。
 
 ENDPOINTS = [
     # "http://localhost:11434/api/generate",
-    "http://10.54.79.131:11434/api/generate",
+    "http://10.54.79.119:11434/api/generate",
 ]
