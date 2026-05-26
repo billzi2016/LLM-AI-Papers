@@ -91,8 +91,8 @@ def write_and_commit(paper: dict, model_output: str) -> Path:
     """
     date_str = paper.get('date', '')
     folder   = date_str[:7] if len(date_str) >= 7 else 'unknown'
-    out_dir  = REPO_ROOT / folder
-    out_dir.mkdir(exist_ok=True)
+    out_dir  = REPO_ROOT / "papers" / folder
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     # 拼接最终 Markdown：硬拼前缀 + 模型输出
     slug     = make_slug(paper['title']) + '.md'
