@@ -129,7 +129,7 @@ def main() -> None:
             with progress_lock:
                 done.add(_key(paper))
                 completed[0] += 1
-                pct = (len(done) / total) * 100
+                pct = (completed[0] / len(todo)) * 100
                 if elapsed_times:
                     avg     = sum(elapsed_times) / len(elapsed_times)
                     # 剩余队列长度 / 线程数 估算 ETA
