@@ -169,8 +169,7 @@ def main() -> None:
           f"  总耗时：{str(timedelta(seconds=int(total_sec)))}")
     print("  请手动执行 git push 推送到远端。")
 
-    if not failed:
-        PROGRESS_FILE.unlink(missing_ok=True)
+    # 进度文件永久保留，再次运行时自动跳过已完成的论文
 
 
 if __name__ == '__main__':
